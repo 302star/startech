@@ -960,7 +960,7 @@
       const setSize = useCallback(() => {
         if (!containerRef.current || !titleRef.current) return;
         const { width: containerW, height: containerH } = containerRef.current.getBoundingClientRect();
-        let newFontSize = containerW / (chars.length / 2);
+        let newFontSize = containerW / (chars.length * 1.5);
         newFontSize = Math.max(newFontSize, minFontSize);
         setFontSize(newFontSize);
         setScaleY(1);
@@ -1112,7 +1112,7 @@
             <section className="ascii-text-section">
               <ASCIIText
                 text="Welcome"
-                asciiFontSize={8}
+                asciiFontSize={3}
                 textFontSize={120}
                 textColor="#fdf9f3"
                 planeBaseHeight={5}
