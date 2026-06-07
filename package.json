@@ -1,0 +1,17 @@
+{
+  "name": "project-repo",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "build": "echo \"No build step configured\"",
+    "test": "jest",
+    "test:single": "jest --runTestsByPath",
+    "lint": "eslint . --ext .js"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0"
+  }
+}
