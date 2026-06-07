@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>React Bits Demo - Offline</title>
+    <style>
+      html,body,#root{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0f1720;color:#e6eef8}
+      .app{padding:24px;max-width:1100px;margin:0 auto}
+      .header{display:flex;align-items:center;gap:16px}
+      .logo{width:56px;height:56px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700}
+      .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:18px}
+      .card{border-radius:12px;padding:14px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));box-shadow:0 6px 30px rgba(2,6,23,0.6);min-height:140px}
+      .center{display:flex;align-items:center;justify-content:center}
+      .small{font-size:13px;opacity:0.8}
+      .btn{cursor:pointer;background:#06b6d4;color:#041024;padding:10px 14px;border-radius:10px;font-weight:600;border:none}
+      img{max-width:100%;height:auto;border-radius:8px}
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Local offline vendor scripts -->
+    <script src="vendor/react.production.min.js"></script>
+    <script src="vendor/react-dom.production.min.js"></script>
+    <script src="vendor/react-bits-shim.js"></script>
+
+    <script>
+      // Use global React and ReactDOM and ReactBits from shim
+      const React = window.React;
+      const ReactDOM = window.ReactDOM;
+      const RB = window.ReactBits || {};
+      const { View, Text, Image, Touchable, Animated } = RB;
+
+      const { useRef, useEffect, useState } = React;
+
+      function AnimatedCounter(){
+        const value = useRef(new Animated.Value(0));
+        const [n, setN] = useState(0);
+        useEffect(()=>{
+          Animated.timing(value.current, {toValue:n, duration:700}).start();
+        },[n]);
+        return React.createElement(View, {style:{display:'flex',flexDirection:'column',gap:10}},
+          React.createElement(Text, {style:{fontSize:14,opacity:0.9}}, 'Animated Counter (press +):'),
+          React.createElement(View, {style:{display:'flex',alignItems:'center',gap:10}},
+            React.createElement(Text, {style:{fontSize:28}}, n),
+            React.createElement(Touchable, {onPress:()=>setN(x=>x+1)}, React.createElement('button',{className:'btn'}, '+'))
+          )
+        );
+      }
+
+      function ProfileCard(){
+        return React.createElement(View, {style:{display:'flex',flexDirection:'row',gap:12,alignItems:'center'}},
+          React.createElement(View, {style:{width:72,height:72,borderRadius:12,overflow:'hidden',flexShrink:0}},
+            React.createElement(Image, {source:{uri:'https://images.unsplash.com/photo-1545996124-6d1f75fceaa7?auto=format&fit=crop&w=256&q=60'}, style:{width:'100%',height:'100%',objectFit:'cover'}})
+          ),
+          React.createElement(View, null,
+            React.createElement(Text, {style:{fontSize:18,fontWeight:700}}, 'Ava Example'),
+            React.createElement(Text, {style:{fontSize:13,opacity:0.8}}, 'Creative engineer • react-bits fan')
+          )
+        );
+      }
+
+      function Gallery(){
+        const shots = [
+          'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=800&q=60',
+          'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=60',
+          'https://images.unsplash.com/photo-1502767089025-6572583495b0?w=800&q=60'
+        ];
+        const [i,setI] = useState(0);
+        return React.createElement(View, null,
+          React.createElement(Text, {style:{fontSize:14,opacity:0.9,marginBottom:8}}, 'Image Gallery (click thumbnails)'),
+          React.createElement(View, {style:{display:'grid',gridTemplateColumns:'1fr',gap:8}},
+            React.createElement(Image, {source:{uri:shots[i]}, style:{width:'100%',height:160,borderRadius:10,objectFit:'cover'}}),
+            React.createElement(View, {style:{display:'flex',gap:8}},
+              shots.map((s,idx)=>React.createElement(Touchable,{key:s, onPress:()=>setI(idx)},
+                React.createElement('img',{src:s,style:{width:86,height:56,objectFit:'cover',borderRadius:8,border: idx===i? '2px solid #06b6d4' : '2px solid transparent'}})
+              ))
+            )
+          )
+        );
+      }
+
+      function App(){
+        return React.createElement(View, {style:{padding:0}},
+          React.createElement('div',{className:'app'},
+            React.createElement('div',{className:'header'},
+              React.createElement('div',{className:'logo center'}, 'RB'),
+              React.createElement('div',null,
+                React.createElement('h2',{style:{margin:0,letterSpacing:0.2,fontSize:20}}, 'React Bits — Demo (Offline)'),
+                React.createElement('div',{className:'small'}, 'Offline bundle with react-bits shim')
+              )
+            ),
+
+            React.createElement('div',{className:'grid'},
+              React.createElement('div',{className:'card'}, React.createElement(ProfileCard,null)),
+              React.createElement('div',{className:'card'}, React.createElement(AnimatedCounter,null)),
+              React.createElement('div',{className:'card'}, React.createElement(Gallery,null)),
+              React.createElement('div',{className:'card'},
+                React.createElement(Text,{style:{fontSize:16,fontWeight:700,marginBottom:8}}, 'Interactive Menu (using Touchable)'),
+                React.createElement(View,{style:{display:'flex',gap:8,flexWrap:'wrap'}},
+                  ['Home','Explore','Collections','About'].map(label=>
+                    React.createElement(Touchable,{key:label, onPress:()=>alert(label+' clicked')},
+                      React.createElement('button',{className:'btn',style:{background:'#7c3aed',color:'#fff'}}, label)
+                    )
+                  )
+                )
+              ),
+              React.createElement('div',{className:'card'},
+                React.createElement(Text,{style:{fontSize:16,fontWeight:700,marginBottom:8}}, 'Demo Text Styles'),
+                React.createElement(Text,{style:{fontSize:24,background:'linear-gradient(90deg,#7c3aed,#06b6d4)',WebkitBackgroundClip:'text',color:'transparent',fontWeight:800}}, 'Gradient Heading'),
+                React.createElement(Text,{style:{marginTop:8,opacity:0.9}}, 'Regular paragraph sample — shows how Text and View compose.')
+              )
+            ),
+
+            React.createElement('div',{style:{marginTop:18,display:'flex',gap:12,alignItems:'center'}},
+              React.createElement(Text,{className:'small'}, 'Notes:'),
+              React.createElement(Text,{className:'small',style:{opacity:0.8}}, 'This offline demo bundles a minimal React UMD and a tiny react-bits shim. Images still load from network.')
+            )
+          )
+        );
+      }
+
+      // Render using ReactDOM.render (our vendor shim supports it)
+      ReactDOM.render(React.createElement(App,null), document.getElementById('root'));
+    </script>
+  </body>
+</html>
