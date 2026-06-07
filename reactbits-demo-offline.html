@@ -129,11 +129,19 @@
             const React = window.React;
             const ReactDOM = window.ReactDOM;
             const RB = window.ReactBits || {};
-            const { View, Text, Image, Touchable, Animated, PressureText } = RB;
+            const { View, Text, Image, Touchable, Animated, PressureText, TextPressure, BlurText, ShinyText, SpotlightCard, ClickSpark, StarBorder } = RB;
             const { useRef, useEffect, useState } = React;
 
+            // Simple Aurora component (CSS-driven)
+            function Aurora(){
+              return React.createElement('div', { className: 'aurora-bg' },
+                React.createElement('div', { className: 'aurora-layer' }),
+                React.createElement('div', { className: 'aurora-layer aurora-layer-2' })
+              );
+            }
+
             function AnimatedCounter(){
-              // fallback to a local rAF-driven animation to ensure it animates even if Animated shim misbehaves
+              // rAF-driven animation to ensure it animates reliably
               const [n, setN] = useState(0);
               const [display, setDisplay] = useState(0);
               const rafRef = useRef(null);
@@ -154,26 +162,25 @@
                 return ()=>{ if(rafRef.current) cancelAnimationFrame(rafRef.current); };
               },[n]);
 
-              // when user requests increment, set fromRef to current displayed value then bump n
               function increment(){ fromRef.current = display; setN(x=>x+1); }
 
-              return React.createElement(View, {style:{display:'flex',flexDirection:'column',gap:10}},
-                React.createElement(Text, {style:{fontSize:14,opacity:0.9}}, 'Animated Counter (press +):'),
-                React.createElement(View, {style:{display:'flex',alignItems:'center',gap:10}},
-                  React.createElement(Text, {style:{fontSize:28}}, display),
-                  React.createElement(Touchable, {onPress:increment}, React.createElement('button',{className:'btn'}, '+'))
+              return React.createElement(View, { style: { display: 'flex', flexDirection: 'column', gap: 10 } },
+                React.createElement(Text, { style: { fontSize: 14, opacity: 0.9 } }, 'Animated Counter (press +):'),
+                React.createElement(View, { style: { display: 'flex', alignItems: 'center', gap: 10 } },
+                  React.createElement(Text, { style: { fontSize: 28 } }, display),
+                  React.createElement(Touchable, { onPress: increment }, React.createElement('button', { className: 'btn' }, '+'))
                 )
               );
             }
 
             function ProfileCard(){
-              return React.createElement(View, {style:{display:'flex',flexDirection:'row',gap:12,alignItems:'center'}},
-                React.createElement(View, {style:{width:72,height:72,borderRadius:12,overflow:'hidden',flexShrink:0}},
-                  React.createElement(Image, {source:{uri:'https://images.unsplash.com/photo-1545996124-6d1f75fceaa7?auto=format&fit=crop&w=256&q=60'}, style:{width:'100%',height:'100%',objectFit:'cover'}})
+              return React.createElement(View, { style: { display: 'flex', flexDirection: 'row', gap: 12, alignItems: 'center' } },
+                React.createElement(View, { style: { width: 72, height: 72, borderRadius: 12, overflow: 'hidden', flexShrink: 0 } },
+                  React.createElement(Image, { source: { uri: 'https://images.unsplash.com/photo-1545996124-6d1f75fceaa7?auto=format&fit=crop&w=256&q=60' }, style: { width: '100%', height: '100%', objectFit: 'cover' } })
                 ),
                 React.createElement(View, null,
-                  React.createElement(Text, {style:{fontSize:18,fontWeight:700}}, 'Ava Example'),
-                  React.createElement(Text, {style:{fontSize:13,opacity:0.8}}, 'Creative engineer • react-bits fan')
+                  React.createElement(Text, { style: { fontSize: 18, fontWeight: 700 } }, 'Ava Example'),
+                  React.createElement(Text, { style: { fontSize: 13, opacity: 0.8 } }, 'Creative engineer • react-bits fan')
                 )
               );
             }
@@ -186,12 +193,12 @@
               ];
               const [i,setI] = useState(0);
               return React.createElement(View, null,
-                React.createElement(Text, {style:{fontSize:14,opacity:0.9,marginBottom:8}}, 'Image Gallery (click thumbnails)'),
-                React.createElement(View, {style:{display:'grid',gridTemplateColumns:'1fr',gap:8}},
-                  React.createElement(Image, {source:{uri:shots[i]}, style:{width:'100%',height:160,borderRadius:10,objectFit:'cover'}}),
-                  React.createElement(View, {style:{display:'flex',gap:8}},
-                    shots.map((s,idx)=>React.createElement(Touchable,{key:s, onPress:()=>setI(idx)},
-                      React.createElement('img',{src:s,style:{width:86,height:56,objectFit:'cover',borderRadius:8,border: idx===i? '2px solid #06b6d4' : '2px solid transparent'}})
+                React.createElement(Text, { style: { fontSize: 14, opacity: 0.9, marginBottom: 8 } }, 'Image Gallery (click thumbnails)'),
+                React.createElement(View, { style: { display: 'grid', gridTemplateColumns: '1fr', gap: 8 } },
+                  React.createElement(Image, { source: { uri: shots[i] }, style: { width: '100%', height: 160, borderRadius: 10, objectFit: 'cover' } }),
+                  React.createElement(View, { style: { display: 'flex', gap: 8 } },
+                    shots.map((s,idx)=>React.createElement(Touchable,{ key: s, onPress: ()=>setI(idx) },
+                      React.createElement('img',{ src: s, style: { width: 86, height: 56, objectFit: 'cover', borderRadius: 8, border: idx===i? '2px solid #06b6d4' : '2px solid transparent' } })
                     ))
                   )
                 )
@@ -199,41 +206,45 @@
             }
 
             function App(){
-              return React.createElement(View, {style:{padding:0}},
-                React.createElement('div',{className:'app'},
-                  React.createElement('div',{className:'header'},
-                    React.createElement('div',{className:'logo center'}, 'RB'),
-                    React.createElement('div',null,
-                      React.createElement('h2',{style:{margin:0,letterSpacing:0.2,fontSize:20}}, 'React Bits — Demo (Offline)'),
-                      React.createElement('div',{className:'small'}, 'Offline bundle with react-bits shim')
-                    )
-                  ),
+              return React.createElement(View, { style: { padding: 0 } },
+                React.createElement('div', { className: 'app' },
+                  React.createElement(Aurora, null),
+                  React.createElement(BlurText, { text: 'Animated UI Components', className: 'hero-title', delay: 80, animateBy: 'words', direction: 'top' }),
+                  React.createElement('div', { className: 'shiny-wrap' }, React.createElement(ShinyText, { text: 'Shiny metallic text effect' })),
 
-                  React.createElement('div',{className:'grid'},
-                    React.createElement('div',{className:'card'}, React.createElement(ProfileCard,null)),
-                    React.createElement('div',{className:'card'}, React.createElement(AnimatedCounter,null)),
-                    React.createElement('div',{className:'card'}, React.createElement(Gallery,null)),
-                    React.createElement('div',{className:'card'},
-                      React.createElement(Text,{style:{fontSize:16,fontWeight:700,marginBottom:8}}, 'Interactive Menu (using Touchable)'),
-                      React.createElement(View,{style:{display:'flex',gap:8,flexWrap:'wrap'}},
-                        ['Home','Explore','Collections','About'].map(label=>
-                          React.createElement(Touchable,{key:label, onPress:()=>alert(label+' clicked')},
-                            React.createElement('button',{className:'btn',style:{background:'#7c3aed',color:'#fff'}}, label)
-                          )
-                        )
+                  React.createElement('div', { className: 'grid' },
+                    React.createElement('div', { className: 'card' }, React.createElement(ProfileCard, null)),
+                    React.createElement('div', { className: 'card' }, React.createElement(AnimatedCounter, null)),
+                    React.createElement('div', { className: 'card' }, React.createElement(Gallery, null)),
+                    React.createElement('div', { className: 'card' },
+                      React.createElement(Text, { style: { fontSize: 16, fontWeight: 700, marginBottom: 8 } }, 'Interactive Menu (using Touchable)'),
+                      React.createElement(View, { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
+                        ['Home','Explore','Collections','About'].map(label=>React.createElement(Touchable,{ key: label, onPress: ()=>alert(label+' clicked') }, React.createElement('button',{ className: 'btn', style:{ background: '#7c3aed', color: '#fff' } }, label)))
                       )
                     ),
-                    React.createElement('div',{className:'card'},
-                      React.createElement(Text,{style:{fontSize:16,fontWeight:700,marginBottom:8}}, 'Demo Text Styles'),
-                      React.createElement(PressureText,{className:'animated-gradient',style:{fontSize:24,fontWeight:800}}, 'Gradient Heading'),
-                      React.createElement(Text,{style:{marginTop:8,opacity:0.9}}, 'Regular paragraph sample — shows how Text and View compose.')
+                    React.createElement('div', { className: 'card' },
+                      React.createElement('div', { style: { fontSize: 16, fontWeight: 700, marginBottom: 8 } }, 'Demo Text Styles'),
+                      React.createElement('div', { style: { height: 140 } }, React.createElement(TextPressure, { text: 'STAR', width: true, weight: true, italic: true, flex: true, textColor: '#FFFFFF', minFontSize: 10 })),
+                      React.createElement(Text, { style: { marginTop: 8, opacity: 0.9 } }, 'Regular paragraph sample — shows how Text and View compose.')
                     )
                   ),
 
-                  React.createElement('div',{style:{marginTop:18,display:'flex',gap:12,alignItems:'center'}},
-                    React.createElement(Text,{className:'small'}, 'Notes:'),
-                    React.createElement(Text,{className:'small',style:{opacity:0.8}}, 'This offline demo bundles a minimal React UMD and a tiny react-bits shim. Images still load from network.')
+                  React.createElement('div', { style: { marginTop: 18, display: 'flex', gap: 12, alignItems: 'center' } },
+                    React.createElement(Text, { className: 'small' }, 'Notes:'),
+                    React.createElement(Text, { className: 'small', style: { opacity: 0.8 } }, 'This offline demo bundles a minimal React UMD and a tiny react-bits shim. Images still load from network.')
+                  ),
+
+                  React.createElement('div', { className: 'cards' },
+                    React.createElement(SpotlightCard, { spotlightColor: 'rgba(99, 102, 241, 0.35)' }, React.createElement('div', { className: 'card-icon' }, '✨'), React.createElement('h3', null, 'Spotlight Card'), React.createElement('p', null, 'Move your cursor over this card — a soft spotlight follows your mouse.')),
+                    React.createElement(SpotlightCard, { spotlightColor: 'rgba(236, 72, 153, 0.35)' }, React.createElement('div', { className: 'card-icon' }, '🌊'), React.createElement('h3', null, 'Aurora Background'), React.createElement('p', null, 'The flowing aurora behind this page is inspired by the React Bits Aurora component.')),
+                    React.createElement(SpotlightCard, { spotlightColor: 'rgba(34, 211, 238, 0.35)' }, React.createElement('div', { className: 'card-icon' }, '🔤'), React.createElement('h3', null, 'Text Pressure'), React.createElement('p', null, 'Characters warp and scale based on cursor proximity.'))
+                  ),
+
+                  React.createElement('div', { className: 'cta-section' },
+                    React.createElement('p', { className: 'cta-hint' }, 'Click the button for spark particles'),
+                    React.createElement(ClickSpark, { sparkColor: '#7cff67', sparkCount: 12, sparkRadius: 20 }, React.createElement(StarBorder, { color: '#7cff67', speed: '5s' }, 'Explore React Bits'))
                   )
+
                 )
               );
             }
