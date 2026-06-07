@@ -35,19 +35,18 @@
         textColor='#FFFFFF', strokeColor='#FF0000', minFontSize=24
       } = opts || {};
 
-      // container
+      // container (match original dimensions)
       const container = document.createElement('div'); container.className = 'text-pressure-container';
-      container.style.width = '100%'; container.style.maxWidth = '900px'; container.style.height = '240px'; container.style.padding = '20px'; container.style.boxSizing = 'border-box';
+      container.style.width = '100%'; container.style.maxWidth = '1000px'; container.style.height = '280px'; container.style.padding = '20px'; container.style.boxSizing = 'border-box';
 
-      // inject font-face
-      if(fontUrl){
-        const s = document.createElement('style');
-        s.textContent = "@font-face{ font-family: '"+fontFamily+"'; src: url('"+fontUrl+"'); font-style: normal; }";
-        document.head.appendChild(s);
-      }
+      // inject font-face + component styles (from original)
+      const s = document.createElement('style');
+      s.textContent = "@font-face { font-family: '"+fontFamily+"'; src: url('"+fontUrl+"'); font-style: normal; } ";
+      s.textContent += ".text-pressure-flex{display:flex;justify-content:space-between;} .text-pressure-stroke span{position:relative;color:"+textColor+";} .text-pressure-stroke span::after{ content: attr(data-char); position:absolute; left:0; top:0; color: transparent; z-index:-1; -webkit-text-stroke-width: 3px; -webkit-text-stroke-color: "+strokeColor+"; } .text-pressure-title{ color: "+textColor+"; }";
+      document.head.appendChild(s);
 
       const h1 = document.createElement('h1');
-      h1.style.margin = '0'; h1.style.whiteSpace = 'nowrap'; h1.style.lineHeight = '1'; h1.style.fontWeight = '100';
+      h1.style.margin = '0'; h1.style.whiteSpace = 'nowrap'; h1.style.lineHeight = '1'; h1.style.fontWeight = '100'; h1.className = 'text-pressure-title';
       container.appendChild(h1);
 
       const chars = text.split('');
@@ -57,21 +56,30 @@
         sp.textContent = ch;
         sp.setAttribute('data-char', ch);
         sp.style.display = 'inline-block';
-        sp.style.color = textColor;
-        sp.style.marginRight = '0.1em';
+        sp.style.color = stroke ? '' : textColor;
+        sp.style.marginRight = '0.05em';
         h1.appendChild(sp);
         spans.push(sp);
       });
 
-      // sizing
+      // sizing (original logic)
       function setSize(){
+        if(!container || !h1) return;
         const rect = container.getBoundingClientRect();
         const containerW = rect.width; const containerH = rect.height;
-        let newFontSize = containerW / Math.max(1, chars.length / 2);
-        const maxFs = Math.max(12, Math.floor(containerH * 0.7));
-        newFontSize = Math.min(newFontSize, maxFs);
+        let newFontSize = containerW / (chars.length / 2);
         newFontSize = Math.max(newFontSize, minFontSize);
         h1.style.fontSize = newFontSize + 'px';
+        // scale adjustment when requested
+        requestAnimationFrame(()=>{
+          if(!h1) return;
+          const textRect = h1.getBoundingClientRect();
+          if(scale && textRect.height > 0){
+            const yRatio = containerH / textRect.height;
+            h1.style.transform = 'scale(1,' + yRatio + ')';
+            h1.style.transformOrigin = 'center top';
+          }
+        });
       }
       setSize();
       window.addEventListener('resize', debounce(setSize, 100));
