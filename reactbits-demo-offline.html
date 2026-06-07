@@ -15,6 +15,10 @@
       .small{font-size:13px;opacity:0.8}
       .btn{cursor:pointer;background:#06b6d4;color:#041024;padding:10px 14px;border-radius:10px;font-weight:600;border:none}
       img{max-width:100%;height:auto;border-radius:8px}
+
+      /* animated gradient for headings */
+      .animated-gradient{ background-image: linear-gradient(90deg,#7c3aed,#06b6d4); background-size:200% 200%; background-repeat:no-repeat; animation:gradientMove 4s linear infinite; -webkit-background-clip:text; color:transparent; }
+      @keyframes gradientMove{ 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
     </style>
   </head>
   <body>
@@ -60,7 +64,20 @@
         const acLabel = document.createElement('div'); acLabel.style.fontSize='14px'; acLabel.style.opacity='0.9'; acLabel.textContent='Animated Counter (press +):';
         const acRow = document.createElement('div'); acRow.style.display='flex'; acRow.style.alignItems='center'; acRow.style.gap='10px';
         const counter = document.createElement('div'); counter.style.fontSize='28px'; counter.textContent='0';
-        const btn = document.createElement('button'); btn.className='btn'; btn.textContent='+'; btn.onclick = ()=>{ counter.textContent = String(Number(counter.textContent||0)+1); };
+        const btn = document.createElement('button'); btn.className='btn'; btn.textContent='+'; btn.onclick = ()=>{
+          const from = Number(counter.textContent||0);
+          const to = from + 1;
+          const start = Date.now();
+          const dur = 700;
+          function step(){
+            const t = Date.now() - start;
+            const p = Math.min(1, t / dur);
+            const cur = Math.round(from + (to - from) * p);
+            counter.textContent = String(cur);
+            if(p < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+        };
         acRow.appendChild(counter); acRow.appendChild(btn);
         card2.appendChild(acLabel); card2.appendChild(acRow);
 
@@ -86,7 +103,11 @@
         // Text styles card
         const card5 = document.createElement('div'); card5.className='card';
         const tTitle = document.createElement('div'); tTitle.style.fontSize='16px'; tTitle.style.fontWeight='700'; tTitle.style.marginBottom='8px'; tTitle.textContent='Demo Text Styles';
-        const grad = document.createElement('div'); grad.style.fontSize='24px'; grad.style.fontWeight='800'; grad.style.background='linear-gradient(90deg,#7c3aed,#06b6d4)'; grad.style.webkitBackgroundClip='text'; grad.style.color='transparent'; grad.textContent='Gradient Heading';
+        const grad = document.createElement('div'); grad.className = 'animated-gradient'; grad.style.fontSize='24px'; grad.style.fontWeight='800'; grad.textContent='Gradient Heading';
+        // pressure interaction for fallback
+        grad.addEventListener('pointerdown', function(e){ const p = (typeof e.pressure === 'number')? e.pressure : 0.5; grad.style.transform = 'scale('+ (1 - Math.min(0.12,0.08*p)) +')'; grad.setPointerCapture && grad.setPointerCapture(e.pointerId); });
+        grad.addEventListener('pointermove', function(e){ if(e.pressure!==undefined){ const p = e.pressure; grad.style.transform = 'scale('+ (1 - Math.min(0.12,0.08*p)) +')'; } });
+        grad.addEventListener('pointerup', function(e){ grad.style.transform = 'scale(1)'; try{ grad.releasePointerCapture && grad.releasePointerCapture(e.pointerId);}catch(_){} });
         const p = document.createElement('div'); p.style.marginTop='8px'; p.style.opacity='0.9'; p.textContent='Regular paragraph sample — shows how Text and View compose.';
         card5.appendChild(tTitle); card5.appendChild(grad); card5.appendChild(p);
 
@@ -108,19 +129,26 @@
             const React = window.React;
             const ReactDOM = window.ReactDOM;
             const RB = window.ReactBits || {};
-            const { View, Text, Image, Touchable, Animated } = RB;
+            const { View, Text, Image, Touchable, Animated, PressureText } = RB;
             const { useRef, useEffect, useState } = React;
 
             function AnimatedCounter(){
               const value = useRef(new Animated.Value(0));
               const [n, setN] = useState(0);
+              const [display, setDisplay] = useState(0);
               useEffect(()=>{
-                Animated.timing(value.current, {toValue:n, duration:700}).start();
+                const anim = Animated.timing(value.current, {toValue:n, duration:700});
+                const sub = value.current.addListener(v=>{
+                  // round for display
+                  setDisplay(Math.round(v));
+                });
+                anim.start();
+                return ()=>{ try{ sub && sub.remove && sub.remove(); }catch(_){} };
               },[n]);
               return React.createElement(View, {style:{display:'flex',flexDirection:'column',gap:10}},
                 React.createElement(Text, {style:{fontSize:14,opacity:0.9}}, 'Animated Counter (press +):'),
                 React.createElement(View, {style:{display:'flex',alignItems:'center',gap:10}},
-                  React.createElement(Text, {style:{fontSize:28}}, n),
+                  React.createElement(Text, {style:{fontSize:28}}, display),
                   React.createElement(Touchable, {onPress:()=>setN(x=>x+1)}, React.createElement('button',{className:'btn'}, '+'))
                 )
               );
@@ -185,7 +213,7 @@
                     ),
                     React.createElement('div',{className:'card'},
                       React.createElement(Text,{style:{fontSize:16,fontWeight:700,marginBottom:8}}, 'Demo Text Styles'),
-                      React.createElement(Text,{style:{fontSize:24,background:'linear-gradient(90deg,#7c3aed,#06b6d4)',WebkitBackgroundClip:'text',color:'transparent',fontWeight:800}}, 'Gradient Heading'),
+                      React.createElement(PressureText,{className:'animated-gradient',style:{fontSize:24,fontWeight:800}}, 'Gradient Heading'),
                       React.createElement(Text,{style:{marginTop:8,opacity:0.9}}, 'Regular paragraph sample — shows how Text and View compose.')
                     )
                   ),
