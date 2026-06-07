@@ -82,5 +82,5 @@
   };
 
   window.ReactBits = window.ReactBits || {};
-  Object.assign(window.ReactBits, { View, Text, Image, Touchable, Animated, StyleSheet, PressureText });
+  Object.assign(window.ReactBits, { View, Text, Image, Touchable, Animated, StyleSheet, PressureText, TextPressure: PressureText });
 })(this);

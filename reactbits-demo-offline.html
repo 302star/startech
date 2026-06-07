@@ -133,23 +133,35 @@
             const { useRef, useEffect, useState } = React;
 
             function AnimatedCounter(){
-              const value = useRef(new Animated.Value(0));
+              // fallback to a local rAF-driven animation to ensure it animates even if Animated shim misbehaves
               const [n, setN] = useState(0);
               const [display, setDisplay] = useState(0);
+              const rafRef = useRef(null);
+              const fromRef = useRef(0);
               useEffect(()=>{
-                const anim = Animated.timing(value.current, {toValue:n, duration:700});
-                const sub = value.current.addListener(v=>{
-                  // round for display
-                  setDisplay(Math.round(v));
-                });
-                anim.start();
-                return ()=>{ try{ sub && sub.remove && sub.remove(); }catch(_){} };
+                const from = fromRef.current;
+                const to = n;
+                const start = Date.now();
+                const dur = 700;
+                function tick(){
+                  const t = Date.now() - start;
+                  const p = Math.min(1, t / dur);
+                  const cur = Math.round(from + (to - from) * p);
+                  setDisplay(cur);
+                  if(p < 1) rafRef.current = requestAnimationFrame(tick);
+                }
+                rafRef.current = requestAnimationFrame(tick);
+                return ()=>{ if(rafRef.current) cancelAnimationFrame(rafRef.current); };
               },[n]);
+
+              // when user requests increment, set fromRef to current displayed value then bump n
+              function increment(){ fromRef.current = display; setN(x=>x+1); }
+
               return React.createElement(View, {style:{display:'flex',flexDirection:'column',gap:10}},
                 React.createElement(Text, {style:{fontSize:14,opacity:0.9}}, 'Animated Counter (press +):'),
                 React.createElement(View, {style:{display:'flex',alignItems:'center',gap:10}},
                   React.createElement(Text, {style:{fontSize:28}}, display),
-                  React.createElement(Touchable, {onPress:()=>setN(x=>x+1)}, React.createElement('button',{className:'btn'}, '+'))
+                  React.createElement(Touchable, {onPress:increment}, React.createElement('button',{className:'btn'}, '+'))
                 )
               );
             }
