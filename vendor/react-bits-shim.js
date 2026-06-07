@@ -192,11 +192,18 @@
       animate(); return ()=> cancelAnimationFrame(rafId);
     }, [width, weight, italic, alpha]);
 
-    const styleEl = ReactLocal.createElement('style', null, `@font-face{ font-family: '${fontFamily}'; src: url('${fontUrl}'); font-style: normal; } .text-pressure-flex{display:flex;justify-content:space-between;} .text-pressure-stroke span{position:relative;color:${textColor};} .text-pressure-stroke span::after{ content: attr(data-char); position:absolute; left:0; top:0; color: transparent; z-index:-1; -webkit-text-stroke-width:3px; -webkit-text-stroke-color: ${strokeColor}; } .text-pressure-title{ color: ${textColor}; }`);
+    const styleString = "@font-face{ font-family: '"+fontFamily+"'; src: url('"+fontUrl+"'); font-style: normal; } .text-pressure-flex{display:flex;justify-content:space-between;} .text-pressure-stroke span{position:relative;color:"+textColor+";} .text-pressure-stroke span::after{ content: attr(data-char); position:absolute; left:0; top:0; color: transparent; z-index:-1; -webkit-text-stroke-width:3px; -webkit-text-stroke-color: "+strokeColor+"; } .text-pressure-title{ color: "+textColor+"; }";
+    const styleEl = ReactLocal.createElement('style', null, styleString);
 
     const dynamicClassName = ['text-pressure-title', className, flex ? 'text-pressure-flex' : '', stroke ? 'text-pressure-stroke' : ''].filter(Boolean).join(' ');
 
-    return ReactLocal.createElement('div', { ref: containerRef, style: { position: 'relative', width: '100%', height: '100%' } }, styleEl, ReactLocal.createElement('h1', { ref: titleRef, className: dynamicClassName, style: { fontFamily, fontSize, lineHeight, transform: `scale(1, ${scaleY})`, transformOrigin: 'center top', margin:0, fontWeight:100, fontStyle:'normal', width:'100%', ...(flex ? {} : { whiteSpace: 'nowrap' }) } }, chars.map((char, i)=> ReactLocal.createElement('span', { key: i, ref: el => { spansRef.current[i] = el; }, 'data-char': char, style: { display:'inline-block', color: stroke ? undefined : textColor } }, char)) );
+    const spanChildren = chars.map(function(char,i){
+      return ReactLocal.createElement('span', { key: i, ref: function(el){ spansRef.current[i] = el; }, 'data-char': char, style: { display: 'inline-block', color: stroke ? undefined : textColor } }, char);
+    });
+
+    const h1Style = Object.assign({ fontFamily: fontFamily, fontSize: fontSize, lineHeight: lineHeight, transform: 'scale(1, ' + scaleY + ')', transformOrigin: 'center top', margin: 0, fontWeight: 100, fontStyle: 'normal', width: '100%' }, (flex ? {} : { whiteSpace: 'nowrap' }));
+
+    return ReactLocal.createElement('div', { ref: containerRef, style: { position: 'relative', width: '100%', height: '100%' } }, styleEl, ReactLocal.createElement('h1', { ref: titleRef, className: dynamicClassName, style: h1Style }, spanChildren));
   }
 
   const StyleSheet = {
