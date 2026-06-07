@@ -545,7 +545,12 @@
       const setSize = useCallback(() => {
         if (!containerRef.current || !titleRef.current) return;
         const { width: containerW, height: containerH } = containerRef.current.getBoundingClientRect();
+        // base font size from available width
         let newFontSize = containerW / (chars.length / 2);
+        // cap font size to a fraction of container height to avoid overflow
+        const maxFontSize = Math.max(12, Math.floor(containerH * 0.8));
+        newFontSize = Math.min(newFontSize, maxFontSize);
+        // ensure not smaller than minFontSize
         newFontSize = Math.max(newFontSize, minFontSize);
         setFontSize(newFontSize);
         setScaleY(1);
